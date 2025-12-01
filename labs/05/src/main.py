@@ -68,19 +68,17 @@ def mixture_distribution(n):
 
 # Запуск и вывод в таблице
 distributions = {
-    "Стандартное нормальное распределение N(0,1)": normal_distribution,
-    "Распределение Коши C(0,1)": cauchy_distribution,
-    "\"Смесь\" 0.9N(0,1) + 0.1C(0,1)": mixture_distribution
+    "N(0,1)": normal_distribution,
+    "C(0,1)": cauchy_distribution,
+    "0.9N(0,1) + 0.1C(0,1)": mixture_distribution
 }
 
 for dist_name, dist_func in distributions.items():
     results = monte_carlo(dist_func, n, num_trials)
 
-    print(f"Данные по {dist_name}:")
-    print("            | Среднее | Дисперсия")
-    print("============|=========|==========")
-    print(f"Выб. среднее| {results[0]:7.4f} | {results[1]:7.4f}")
-    print(f"Выб. медиана| {results[2]:7.4f} | {results[3]:7.4f}")
-    print(f"Хубер       | {results[4]:7.4f} | {results[5]:7.4f}")
-    print(f"Двухэтап.   | {results[6]:7.4f} | {results[7]:7.4f}")
+    print(f"{dist_name}:")
+    print(f"Среднее: выборочное = {results[0]:.4f}, дисперсия = {results[1]:.4f}")
+    print(f"Медиана: выборочное = {results[2]:.4f}, дисперсия = {results[3]:.4f}")
+    print(f"Хубер:   выборочное = {results[4]:.4f}, дисперсия = {results[5]:.4f}")
+    print(f"Двухэтап.: выборочное = {results[6]:.4f}, дисперсия = {results[7]:.4f}")
     print()
