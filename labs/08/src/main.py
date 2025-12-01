@@ -18,7 +18,7 @@ y_true_func = x_plot ** 3 + 1
 # Список alpha
 alphas = [0, 0.001, 0.01, 0.1, 1.0, 10.0]
 
-# ------------------- Задача 1: Без шума -------------------
+# Задача 1: Без шума
 
 fig, axes = plt.subplots(2, 3, figsize=(19, 11))
 axes = axes.ravel()
@@ -58,7 +58,7 @@ plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 plt.savefig("plots/task1_comparison.png", dpi=300, bbox_inches='tight')
 plt.show(block=False)
 
-# ------------------- Задача 2: С шумом -------------------
+# Задача 2: С шумом
 noises = [0.1, 0.2, 0.3]
 np.random.seed(42)  # для воспроизводимости
 
