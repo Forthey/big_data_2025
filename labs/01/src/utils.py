@@ -2,8 +2,8 @@ import math
 import random
 
 
-def gen_vector(length: int) -> list[float]:
-    return [random.randint(-10, 10) for _ in range(length)]
+def gen_vector(length: int, offset: int) -> list[float]:
+    return [(-1) ** (i + offset) * (10 - i - offset) for i in range(length)]
 
 
 def strip_concatenate(x: list, y: list) -> list:

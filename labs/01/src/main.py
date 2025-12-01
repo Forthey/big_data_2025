@@ -3,7 +3,7 @@ from utils import gen_vector, strip_concatenate, p_norm, inf_norm, dot
 
 # 2
 def generate_vectors() -> tuple[list[float], list[float]]:
-    x, y = gen_vector(10), gen_vector(10)
+    x, y = gen_vector(6, 0), [5, -4, 3, -2, 1, 0]
     print(f"\n{x=},\n{y=}")
 
     return x, y
