@@ -17,8 +17,8 @@ def parse_csv(filename: str, year: str) -> pd.Series:
 
 
 def get_data() -> pd.DataFrame:
-    def get_filename(data: str) -> str:
-        result: str = input(data)
+    def get_filename(data: str, default: str | None = None) -> str:
+        result: str = default or input(data)
 
         assert result[-4:] == ".csv"
         assert result.count("_") == 2
@@ -33,11 +33,8 @@ def get_data() -> pd.DataFrame:
 
         return filename[start:end - 1]
     
-    first:  str = get_filename("Путь к первому файлу: ")
-    second: str = get_filename("Путь ко второму файлу: ")
-
-    # first = "weather_27333_2023.csv"
-    # second = "weather_27333_2024.csv"
+    first:  str = get_filename("Путь к файлу за один год: ", "weather_26063_2023.csv")
+    second: str = get_filename("Путь к файлу за другой год: ", "weather_26063_2024.csv")
 
     df_f: pd.Series = parse_csv(first, get_year_from_filename(first))
     df_s: pd.Series = parse_csv(second, get_year_from_filename(second))
@@ -73,17 +70,12 @@ def process_data(data: pd.DataFrame):
     # Анализ сезонности по месяцам
     seasonal_amplitude = decomposition.seasonal.groupby(decomposition.seasonal.index.month).mean()
 
-    print("\n" + "=" * 30)
-    print("СЕЗОННАЯ КОМПОНЕНТА ТЕМПЕРАТУР")
-    print("=" * 30)
-
     months = [
         "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
         "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"
     ]
 
-    print(f"{"Месяц":<15} {"Температура":<12}")
-    print("-" * 30)
+    print(f"{"Месяц":<15} {"Температура":<12}\n")
 
     for month_num in range(1, 13):
         temp = seasonal_amplitude[month_num]
@@ -91,17 +83,17 @@ def process_data(data: pd.DataFrame):
         
         print(f"{months[month_num-1]:<15} {deviation:<12}")
 
-    print("-" * 30)
+    print()
 
 
 def print_base_graph(df: pd.DataFrame):
-    pyplot.figure(figsize=(15, 6))
-    pyplot.plot(df.index, df["temp"])
+    pyplot.figure(figsize=(15, 8))
+    pyplot.plot(df.index, df["temp"], color="black")
     pyplot.title("Среднесуточная температура")
     pyplot.xlabel("Дата")
     pyplot.ylabel("Температура (°C)")
     pyplot.grid(True)
-    pyplot.show()
+    pyplot.savefig("base_graph.png")
 
 
 def print_trend_graph(df: pd.DataFrame):
@@ -111,56 +103,45 @@ def print_trend_graph(df: pd.DataFrame):
 
     pyplot.figure(figsize=(15, 15))
     pyplot.subplot(4, 1, 1)
-    pyplot.plot(decomposition.observed)
-    pyplot.title('Исходный ряд')
+    pyplot.plot(decomposition.observed, color='black')
+    pyplot.title('Исходный')
 
     pyplot.subplot(4, 1, 2)
-    pyplot.plot(decomposition.trend)
+    pyplot.plot(decomposition.trend, color="black")
     pyplot.title('Тренд')
 
     pyplot.subplot(4, 1, 3)
-    pyplot.plot(decomposition.seasonal)
+    pyplot.plot(decomposition.seasonal, color="red")
     pyplot.title('Сезонная компонента')
 
     pyplot.subplot(4, 1, 4)
-    pyplot.scatter(decomposition.resid.index, decomposition.resid, s=30, alpha=0.5)
+    pyplot.scatter(decomposition.resid.index, decomposition.resid, s=30, alpha=0.5, color="red")
     pyplot.title('Остатки')
     pyplot.tight_layout()
-    pyplot.show()
+    pyplot.savefig("trend_graph.png")
 
 
 def print_moving_avg_graph(df: pd.DataFrame):
     # Скользящее среднее для тренда
 
-    WINDOW = 30
-    df['moving_avg'] = df['temp'].rolling(window=WINDOW).mean()
+    days = 30
+    df['moving_avg'] = df['temp'].rolling(window=days).mean()
 
     pyplot.figure(figsize=(15, 6))
-    pyplot.plot(df.index, df['temp'], alpha=0.7, label='Исходные данные')
-    pyplot.plot(df.index, df['moving_avg'], label=f'Скользящее среднее ({WINDOW} дней)')
-    pyplot.title('Выделение тренда методом скользящего среднего')
+    pyplot.plot(df.index, df['temp'], alpha=0.7, label='Исходные данные', color="black")
+    pyplot.plot(df.index, df['moving_avg'], label=f'Скользящее среднее ({days=})', color="red")
+    pyplot.title('Тренд методом скользящего среднего')
     pyplot.legend()
-    pyplot.show()
+    pyplot.savefig("moving_arg_graph.png")
 
 
 def main():
     data = get_data()
     process_data(data)
 
-    while True:
-        command = input("0 - Визуализация исходных данных\n1 - Анализ тренда, сезонности и остатков\n2 - Дополнительный анализ: скользящее среднее для тренда\nexit - Выход\n")
-        
-        match (command):
-            case "0":
-                print_base_graph(data)
-            case "1":
-                print_trend_graph(data)
-            case "2":
-                print_moving_avg_graph(data)
-            case "exit":
-                break
-            case _:
-                print(f"Команды \"{command}\" нет в списке!")
+    print_base_graph(data)
+    print_trend_graph(data)
+    print_moving_avg_graph(data)
 
 
 if __name__ == "__main__":
