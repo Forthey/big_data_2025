@@ -1,4 +1,5 @@
 import matplotlib.pyplot as pyplot
+import numpy as np
 import pandas as pd
 from statsmodels.tsa.seasonal import seasonal_decompose
 
@@ -28,12 +29,12 @@ def get_data() -> pd.DataFrame:
     def get_year_from_filename(filename: str) -> str:
         reversed = filename[::-1]
 
-        start:  int = len(filename) - reversed.find("_")
-        end:    int = len(filename) - reversed.find(".")
+        start: int = len(filename) - reversed.find("_")
+        end: int = len(filename) - reversed.find(".")
 
         return filename[start:end - 1]
-    
-    first:  str = get_filename("Путь к файлу за один год: ", "weather_26063_2023.csv")
+
+    first: str = get_filename("Путь к файлу за один год: ", "weather_26063_2023.csv")
     second: str = get_filename("Путь к файлу за другой год: ", "weather_26063_2024.csv")
 
     df_f: pd.Series = parse_csv(first, get_year_from_filename(first))
@@ -48,7 +49,7 @@ def get_data() -> pd.DataFrame:
 
     df["date"] = pd.to_datetime(df["date"])
     df.set_index("date", inplace=True)
-    df = df.asfreq("D") 
+    df = df.asfreq("D")
 
     return df
 
@@ -80,10 +81,39 @@ def process_data(data: pd.DataFrame):
     for month_num in range(1, 13):
         temp = seasonal_amplitude[month_num]
         deviation = f"{temp:+.2f}°C"
-        
-        print(f"{months[month_num-1]:<15} {deviation:<12}")
+
+        print(f"{months[month_num - 1]:<15} {deviation:<12}")
 
     print()
+
+
+def print_fourier_spectrum(df: pd.DataFrame):
+    values = df.values
+
+    x_fft = np.fft.fft(values)
+    amplitude_spectrum = np.abs(x_fft) / len(values)
+    frequencies = np.fft.fftfreq(len(values), d=0.1)
+
+    positive_freq_mask = frequencies >= 0
+    amplitude_spectrum = amplitude_spectrum[positive_freq_mask]
+    frequencies = frequencies[positive_freq_mask]
+
+    main_freq_idx = np.argmax(amplitude_spectrum[1:]) + 1
+    main_frequency = frequencies[main_freq_idx]
+    main_amplitude = amplitude_spectrum[main_freq_idx]
+
+    print(f"Главная частота: {main_frequency:.2f} Hz с амплитудой {main_amplitude[0]:.4f}")
+
+    pyplot.figure(figsize=(10, 6))
+    pyplot.plot(frequencies, amplitude_spectrum, 'b-')
+    pyplot.plot(main_frequency, main_amplitude, 'ro', label=f'Главная частота = {main_frequency:.2f} Hz')
+    pyplot.title('Амплитудный спектр Фурье')
+    pyplot.xlabel('Частота (Hz)')
+    pyplot.ylabel('Амплитуда')
+    pyplot.grid(True)
+    pyplot.legend()
+    # pyplot.show()
+    pyplot.savefig("fourier_spectrum.png")
 
 
 def print_base_graph(df: pd.DataFrame):
@@ -139,6 +169,7 @@ def main():
     data = get_data()
     process_data(data)
 
+    print_fourier_spectrum(data)
     print_base_graph(data)
     print_trend_graph(data)
     print_moving_avg_graph(data)
