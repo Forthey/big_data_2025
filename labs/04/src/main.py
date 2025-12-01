@@ -13,7 +13,7 @@ class SigmaRuleResult:
     last_three_anomalies: np.ndarray
 
 # 1. Генерация данных
-def generate_data(seed: int = 42) -> tuple[np.ndarray, np.ndarray]:
+def generate_data(seed: int = 89) -> tuple[np.ndarray, np.ndarray]:
     np.random.seed(seed)
     xx = np.random.normal(0, 1, 195)
 
