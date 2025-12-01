@@ -13,7 +13,7 @@ class LinearRegResult:
 
 
 # 1. Генерация данных
-def generate_data(seed: int = 42) -> Point[np.ndarray]:
+def generate_data(seed: int = 89) -> Point[np.ndarray]:
     np.random.seed(seed)
 
     n = 500
