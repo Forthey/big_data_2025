@@ -75,6 +75,78 @@ def test_residuals(series, ema_dict):
     return results
 
 
+def print_trend_comparison(k, x, true_trend, ema_dict, alphas, figsize=(14, 10)):
+    n_alphas = len(alphas)
+    fig, axes = plt.subplots(n_alphas + 1, 1, figsize=figsize)
+
+    # Первый график: исходный ряд и истинный тренд
+    ax = axes[0]
+    ax.plot(k, x, 'b-', alpha=0.5, linewidth=0.8, label='Исходный ряд')
+    ax.plot(k, true_trend, 'r-', linewidth=2, label='Истинный тренд')
+    ax.set_title('Исходный временной ряд и истинный тренд', fontsize=12, fontweight='bold')
+    ax.set_xlabel('Время (k)')
+    ax.set_ylabel('Значение')
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+
+    # Графики для каждого значения alpha
+    for i, alpha in enumerate(alphas, 1):
+        ax = axes[i]
+        ema = ema_dict[alpha]
+
+        ax.plot(k, x, 'b-', alpha=0.3, linewidth=0.5, label='Исходный ряд')
+        ax.plot(k, true_trend, 'r-', linewidth=1.5, label='Истинный тренд', alpha=0.7)
+        ax.plot(k, ema.values, 'g-', linewidth=2, label=f'EMA (α={alpha})')
+
+        # Добавим MSE и корреляцию на график
+        mse = mean_squared_error(true_trend, ema.values)
+        corr = np.corrcoef(true_trend, ema.values)[0, 1]
+
+        text_str = f'MSE: {mse:.4f}\nCorr: {corr:.4f}'
+        ax.text(0.02, 0.98, text_str, transform=ax.transAxes,
+                fontsize=10, verticalalignment='top',
+                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+
+        ax.set_title(f'Сравнение трендов для α={alpha}', fontsize=11)
+        ax.set_xlabel('Время (k)')
+        ax.set_ylabel('Значение')
+        ax.legend(loc='upper right')
+        ax.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    plt.savefig("trend_comparison.png")
+
+    # Дополнительно: график ошибок (разница между EMA и истинным трендом)
+    fig2, axes2 = plt.subplots(2, 2, figsize=(12, 8))
+    axes2 = axes2.flatten()
+
+    for i, alpha in enumerate(alphas):
+        ax = axes2[i]
+        ema = ema_dict[alpha]
+        error = ema.values - true_trend
+
+        ax.plot(k, error, 'm-', linewidth=1, alpha=0.7)
+        ax.axhline(y=0, color='r', linestyle='--', alpha=0.5)
+        ax.fill_between(k, 0, error, alpha=0.3, color='m')
+
+        ax.set_title(f'Ошибка EMA (α={alpha})', fontsize=11)
+        ax.set_xlabel('Время (k)')
+        ax.set_ylabel('Ошибка')
+        ax.grid(True, alpha=0.3)
+
+        # Статистика ошибок
+        mean_err = error.mean()
+        std_err = error.std()
+        ax.text(0.02, 0.98, f'Mean: {mean_err:.4f}\nStd: {std_err:.4f}',
+                transform=ax.transAxes, fontsize=9,
+                verticalalignment='top',
+                bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.7))
+
+    plt.suptitle('Ошибки оценки тренда для различных α', fontsize=14, fontweight='bold')
+    plt.tight_layout()
+    plt.show()
+
+
 # Главный сценарий
 def main():
     k, true_trend, x = generate_series()
@@ -86,6 +158,8 @@ def main():
     print("\nСравнение трендов (MSE и корреляция):")
     for a, r in comparison.items():
         print(f"alpha={a}: MSE={r['mse']:.4f}, corr={r['corr']:.4f}")
+
+    print_trend_comparison(k, x, true_trend, ema_dict, alphas)
 
     freqs, amp, main_freq = fourier_spectrum(x, h=0.1)
     print(f"\nГлавная частота спектра: {main_freq:.5f}")
